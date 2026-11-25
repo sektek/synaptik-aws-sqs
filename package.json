@@ -1,0 +1,45 @@
+{
+  "name": "@sektek/synaptik-aws-sqs",
+  "version": "1.0.0",
+  "description": "SQS support for Synaptik",
+  "author": "Edward Kelly <eddie@sektek.net>",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:sektek/synaptik-aws-sqs.git"
+  },
+  "license": "MIT",
+  "private": false,
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "npx tsc -p tsconfig.build.json",
+    "lint": "eslint . --cache",
+    "test": "mocha",
+    "test:min": "mocha --config .mocharc.min.cjs",
+    "test:cover": "c8 npm run test"
+  },
+  "dependencies": {
+    "tslib": "^2.9.1"
+  },
+  "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@sektek/eslint-plugin": "^3.0.1",
+    "@sektek/prettier-config": "^2.0.0",
+    "@types/chai": "^5.2.3",
+    "@types/chai-as-promised": "^8.0.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.6.10",
+    "@types/sinon": "^22.0.2",
+    "@types/sinon-chai": "^4.0.1",
+    "c8": "^12.0.0",
+    "chai": "^6.3.0",
+    "chai-as-promised": "^8.0.2",
+    "eslint": "^10.15.0",
+    "mocha": "^12.0.3",
+    "prettier": "^3.10.1",
+    "sinon": "^22.1.0",
+    "sinon-chai": "^4.0.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
