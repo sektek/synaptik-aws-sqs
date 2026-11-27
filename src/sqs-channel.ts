@@ -11,7 +11,6 @@ import {
   EventComponentOptions,
 } from '@sektek/synaptik';
 import {
-  Component,
   EventEmittingService,
   getComponent,
   nothing,
@@ -37,17 +36,6 @@ const DEFAULT_SERIALIZER = (event: Event) => JSON.stringify(event);
  */
 export type SqsChannelEvents<T extends Event = Event> = EventChannelEvents<T> &
   SqsTransportEvents;
-
-/**
- * An {@link SqsChannel} instance, or a plain function with its `send`
- * signature.
- *
- * @template T - The event type.
- */
-export type SqsChannelComponent<T extends Event = Event> = Component<
-  SqsChannel<T>,
-  'send'
->;
 
 /**
  * Options for {@link SqsChannel}.
