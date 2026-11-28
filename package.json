@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.1177.0",
-    "@sektek/synaptik": "^0.5.1",
+    "@sektek/synaptik": "^0.5.2",
     "@sektek/utility-belt": "^0.4.4",
     "tslib": "^2.9.1"
   },

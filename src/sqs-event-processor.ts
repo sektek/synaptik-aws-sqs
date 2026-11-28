@@ -1,24 +1,8 @@
+import { Event, isEvent } from '@sektek/synaptik';
 import { Processor, getComponent } from '@sektek/utility-belt';
-import { Event } from '@sektek/synaptik';
 import { Message } from '@aws-sdk/client-sqs';
 
 import { SqsEventProcessorOptions } from './types/index.js';
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const isOptionalString = (value: unknown): boolean =>
-  value === undefined || typeof value === 'string';
-
-const isEvent = (value: unknown): value is Event =>
-  isRecord(value) &&
-  typeof value.id === 'string' &&
-  typeof value.type === 'string' &&
-  isRecord(value.data) &&
-  isOptionalString(value.parentId) &&
-  (value.replyTo === undefined ||
-    (Array.isArray(value.replyTo) &&
-      value.replyTo.every(item => typeof item === 'string')));
 
 const deserializeJsonEvent = (body: string): Event => {
   const parsed: unknown = JSON.parse(body);
