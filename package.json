@@ -16,7 +16,8 @@
     "lint": "eslint . --cache",
     "test": "mocha",
     "test:min": "mocha --config .mocharc.min.cjs",
-    "test:cover": "c8 npm run test"
+    "test:cover": "c8 npm run test",
+    "release": "release-it --ci"
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.1177.0",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@release-it/conventional-changelog": "^10.0.6",
     "@sektek/eslint-plugin": "^3.0.1",
     "@sektek/prettier-config": "^2.0.0",
     "@types/chai": "^5.2.3",
@@ -37,9 +39,10 @@
     "c8": "^12.0.0",
     "chai": "^6.3.0",
     "chai-as-promised": "^8.0.2",
-    "eslint": "^10.15.0",
+    "eslint": "^9.39.1",
     "mocha": "^12.0.3",
     "prettier": "^3.10.1",
+    "release-it": "^19.2.4",
     "sinon": "^22.1.0",
     "sinon-chai": "^4.0.1",
     "tsx": "^4.23.15",
