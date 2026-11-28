@@ -1,4 +1,10 @@
 import {
+  CollectorComponent,
+  ProcessManager,
+  getComponent,
+  sleep,
+} from '@sektek/utility-belt';
+import {
   DeleteMessageBatchCommand,
   DeleteMessageBatchCommandInput,
   DeleteMessageBatchCommandOutput,
@@ -7,14 +13,12 @@ import {
   SQSClient,
   SendMessageBatchCommand,
 } from '@aws-sdk/client-sqs';
-import { ProcessManager, getComponent, sleep } from '@sektek/utility-belt';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { ElasticMqQueues } from '../test/elasticmq-queues.js';
 import { SqsBatchDeleteSettler } from './sqs-batch-delete-settler.js';
 import { SqsBatchDeleteSettlerOptions } from './types/sqs-batch-delete-settler.js';
-import { SqsSettlerComponent } from './types/sqs-settler.js';
 
 use(chaiAsPromised);
 
@@ -179,7 +183,7 @@ describe('SqsBatchDeleteSettler', function () {
       const settler = newSettler({ client, flushIntervalMs: 60_000 });
 
       for (const message of messages) {
-        await settler.settle(message);
+        await settler.add(message);
       }
 
       await waitFor(() => deleted.length === 20);
@@ -201,7 +205,7 @@ describe('SqsBatchDeleteSettler', function () {
       });
 
       for (const message of fakeMessages(6)) {
-        await settler.settle(message);
+        await settler.add(message);
       }
 
       await waitFor(() => deleted.length === 6);
@@ -214,7 +218,7 @@ describe('SqsBatchDeleteSettler', function () {
       const settler = newSettler({ client, flushIntervalMs: 30 });
 
       for (const message of messages) {
-        await settler.settle(message);
+        await settler.add(message);
       }
 
       expect(calls).to.be.empty;
@@ -228,7 +232,7 @@ describe('SqsBatchDeleteSettler', function () {
       const { calls, client } = fakeClient(succeed);
       const settler = newSettler({ client, flushIntervalMs: 60_000 });
 
-      await settler.settle(fakeMessages(1)[0]);
+      await settler.add(fakeMessages(1)[0]);
 
       expect(calls).to.be.empty;
       expect(deleted).to.be.empty;
@@ -244,9 +248,9 @@ describe('SqsBatchDeleteSettler', function () {
         safetyMarginMs: 450,
       });
 
-      await settler.settle(messages[0]);
+      await settler.add(messages[0]);
       await sleep(20);
-      await settler.settle(messages[1]);
+      await settler.add(messages[1]);
       await sleep(30);
 
       expect(calls).to.be.empty;
@@ -264,7 +268,7 @@ describe('SqsBatchDeleteSettler', function () {
         safetyMarginMs: 500,
       });
 
-      await settler.settle(message);
+      await settler.add(message);
       await waitFor(() => deleted.length === 1);
       await sleep(1200);
 
@@ -292,7 +296,7 @@ describe('SqsBatchDeleteSettler', function () {
       });
       const [message] = fakeMessages(1);
 
-      await settler.settle(message);
+      await settler.add(message);
       await waitFor(() => errors.length === 1);
       await sleep(60);
 
@@ -312,7 +316,7 @@ describe('SqsBatchDeleteSettler', function () {
         safetyMarginMs: 999,
       });
 
-      await settler.settle(fakeMessages(1)[0]);
+      await settler.add(fakeMessages(1)[0]);
       await sleep(20);
       await settler.stop();
 
@@ -337,7 +341,7 @@ describe('SqsBatchDeleteSettler', function () {
       const messages = fakeMessages(3);
 
       for (const message of messages) {
-        await settler.settle(message);
+        await settler.add(message);
       }
 
       await waitFor(() => errors.length === 2);
@@ -365,7 +369,7 @@ describe('SqsBatchDeleteSettler', function () {
       const messages = fakeMessages(2);
 
       for (const message of messages) {
-        await settler.settle(message);
+        await settler.add(message);
       }
 
       await waitFor(() => deleted.length === 2);
@@ -385,7 +389,7 @@ describe('SqsBatchDeleteSettler', function () {
       );
       const settler = newSettler({ client });
 
-      await settler.settle(fakeMessages(1)[0]);
+      await settler.add(fakeMessages(1)[0]);
       await waitFor(() => deleted.length === 1);
 
       expect(calls).to.have.lengthOf(2);
@@ -397,7 +401,7 @@ describe('SqsBatchDeleteSettler', function () {
       );
       const settler = newSettler({ client, requestTimeoutMs: 20 });
 
-      await settler.settle(fakeMessages(1)[0]);
+      await settler.add(fakeMessages(1)[0]);
       await waitFor(() => deleted.length === 1);
 
       expect(calls).to.have.lengthOf(2);
@@ -411,7 +415,7 @@ describe('SqsBatchDeleteSettler', function () {
       const settler = newSettler({ client });
 
       for (const message of fakeMessages(2)) {
-        await settler.settle(message);
+        await settler.add(message);
       }
 
       await waitFor(() => errors.length === 2);
@@ -425,7 +429,7 @@ describe('SqsBatchDeleteSettler', function () {
       const settler = newSettler();
       const message: Message = { MessageId: 'x' };
 
-      await expect(settler.settle(message)).to.be.rejectedWith(/ReceiptHandle/);
+      await expect(settler.add(message)).to.be.rejectedWith(/ReceiptHandle/);
 
       expect(errors).to.have.lengthOf(1);
       expect(errors[0].message).to.equal(message);
@@ -437,7 +441,7 @@ describe('SqsBatchDeleteSettler', function () {
       });
       const settler = newSettler({ client });
 
-      await expect(settler.settle(fakeMessages(1)[0])).to.be.fulfilled;
+      await expect(settler.add(fakeMessages(1)[0])).to.be.fulfilled;
     });
   });
 
@@ -450,7 +454,7 @@ describe('SqsBatchDeleteSettler', function () {
       settler.on('service:stopped', () => events.push('stopped'));
 
       for (const message of messages) {
-        await settler.settle(message);
+        await settler.add(message);
       }
 
       await settler.stop();
@@ -475,7 +479,7 @@ describe('SqsBatchDeleteSettler', function () {
         stopTimeoutMs: 2000,
       });
 
-      await settler.settle(fakeMessages(1)[0]);
+      await settler.add(fakeMessages(1)[0]);
       await settler.stop();
 
       expect(calls).to.have.lengthOf(2);
@@ -489,13 +493,13 @@ describe('SqsBatchDeleteSettler', function () {
       settler.on('service:started', () => started.push('started'));
       await settler.stop();
 
-      await expect(settler.settle(fakeMessages(1)[0])).to.be.rejectedWith(
+      await expect(settler.add(fakeMessages(1)[0])).to.be.rejectedWith(
         /stopped/,
       );
       expect(errors).to.have.lengthOf(1);
 
       await settler.start();
-      await settler.settle(fakeMessages(1)[0]);
+      await settler.add(fakeMessages(1)[0]);
       await sleep(10);
 
       expect(started).to.have.lengthOf(1);
@@ -516,7 +520,7 @@ describe('SqsBatchDeleteSettler', function () {
       settler.on('service:stopped', () => stopped.push('stopped'));
 
       for (const message of messages) {
-        await settler.settle(message);
+        await settler.add(message);
       }
 
       await expect(settler.stop()).to.be.rejectedWith(/did not drain/);
@@ -557,8 +561,8 @@ describe('SqsBatchDeleteSettler', function () {
   describe('as a component', function () {
     it('should be usable as an SqsSettlerComponent', async function () {
       const messages = await receiveSent(1);
-      const component: SqsSettlerComponent = newSettler();
-      const settle = getComponent(component, 'settle');
+      const component: CollectorComponent<Message> = newSettler();
+      const settle = getComponent(component, 'add');
 
       await settle(messages[0]);
       await waitFor(() => deleted.length === 1);

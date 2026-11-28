@@ -56,7 +56,7 @@ const isPermanentFailure = (error: unknown): boolean =>
  * An {@link SqsSettler} that deletes messages in batches with
  * `DeleteMessageBatch`.
  *
- * `settle()` queues the delete and resolves once it is queued, without waiting
+ * `add()` queues the delete and resolves once it is queued, without waiting
  * for AWS. Outcomes are reported only through events: `message:deleted` once
  * AWS confirmed the delete, and `message:deleteError` when it failed. The
  * handler outcome is never affected.
@@ -163,7 +163,7 @@ export class SqsBatchDeleteSettler
    * @throws {Error} If the settler is stopped or the message has no receipt
    * handle, after emitting `message:deleteError`.
    */
-  async settle(message: Message): Promise<void> {
+  async add(message: Message): Promise<void> {
     if (!this.#accepting || !message.ReceiptHandle) {
       const error = new Error(
         this.#accepting
