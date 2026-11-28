@@ -50,7 +50,7 @@ export class SqsDeleteSettler
    * @returns A promise that resolves once the message is deleted.
    * @throws {Error} When the deletion fails, after emitting `message:deleteError`.
    */
-  async settle(message: Message): Promise<void> {
+  async add(message: Message): Promise<void> {
     try {
       const client = await this.#client();
       await client.send(

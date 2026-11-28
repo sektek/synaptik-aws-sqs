@@ -55,7 +55,7 @@ describe('SqsDeleteSettler', function () {
     });
     const message = await receiveOne();
 
-    await settler.settle(message);
+    await settler.add(message);
     await sleep(1500);
 
     expect(await receive()).to.be.undefined;
@@ -72,7 +72,7 @@ describe('SqsDeleteSettler', function () {
     settler.on('message:deleteError', failed);
     const message = await receiveOne();
 
-    await settler.settle(message);
+    await settler.add(message);
 
     expect(deleted.calledOnceWithExactly(message)).to.be.true;
     expect(failed.called).to.be.false;
@@ -86,7 +86,7 @@ describe('SqsDeleteSettler', function () {
     const deleted = fake();
     settler.on('message:deleted', deleted);
 
-    await settler.settle(await receiveOne());
+    await settler.add(await receiveOne());
 
     expect(deleted.calledOnce).to.be.true;
   });
@@ -102,7 +102,7 @@ describe('SqsDeleteSettler', function () {
     settler.on('message:deleteError', failed);
     const message: Message = { ...(await receiveOne()), ReceiptHandle: 'bad' };
 
-    await expect(settler.settle(message)).to.be.rejected;
+    await expect(settler.add(message)).to.be.rejected;
 
     expect(deleted.called).to.be.false;
     expect(failed.calledOnce).to.be.true;
@@ -122,7 +122,7 @@ describe('SqsDeleteSettler', function () {
     settler.on('message:deleteError', failed);
     const message: Message = { ReceiptHandle: 'x' };
 
-    await expect(settler.settle(message)).to.be.rejectedWith(error);
+    await expect(settler.add(message)).to.be.rejectedWith(error);
 
     expect(failed.calledOnceWithExactly(error, message)).to.be.true;
   });

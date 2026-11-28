@@ -1,4 +1,4 @@
-import { Component, EventEmittingService } from '@sektek/utility-belt';
+import { Collector, EventEmittingService } from '@sektek/utility-belt';
 import { EventService } from '@sektek/synaptik';
 import { Message } from '@aws-sdk/client-sqs';
 
@@ -16,24 +16,23 @@ export type SqsSettlerEvents = {
 };
 
 /**
- * Settles an SQS message that was processed successfully, so that it is not
- * delivered again. A settler knows nothing about the component that calls it.
+ * Collects SQS messages that were processed successfully and settles them, so
+ * that they are not delivered again. A settler knows nothing about the
+ * component that adds messages to it.
  */
 export interface SqsSettler
-  extends EventService, EventEmittingService<SqsSettlerEvents> {
+  extends
+    Collector<Message>,
+    EventService,
+    EventEmittingService<SqsSettlerEvents> {
   /**
-   * Settles a successfully processed message.
+   * Adds a successfully processed message to be settled.
    *
    * @param message - The message to settle.
-   * @returns A promise that resolves once the message is settled.
+   * @returns A promise that resolves once the message is settled, or, for a
+   *   batching settler, once it is queued for settlement.
    * @throws {Error} When the message could not be settled. The failure is also
    *   reported through the `message:deleteError` event.
    */
-  settle(message: Message): Promise<void>;
+  add(message: Message): Promise<void>;
 }
-
-/**
- * A settler, or a plain function with the same signature as
- * {@link SqsSettler.settle}.
- */
-export type SqsSettlerComponent = Component<SqsSettler, 'settle'>;
